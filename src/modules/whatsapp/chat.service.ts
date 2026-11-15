@@ -14,9 +14,9 @@ import type { InteractiveMessagePayload, AlbumItem } from "./interactive";
 export type ChatListFilter = "all" | "private" | "groups";
 
 const CHAT_FILTER_SQL: Record<ChatListFilter, string> = {
-    all: "AND m1.remoteJid NOT LIKE '%@broadcast'",
-    private: "AND m1.remoteJid NOT LIKE '%@g.us' AND m1.remoteJid NOT LIKE '%@broadcast' AND m1.remoteJid NOT LIKE '%@newsletter'",
-    groups: "AND m1.remoteJid LIKE '%@g.us'",
+    all: `AND m1."remoteJid" NOT LIKE '%@broadcast'`,
+    private: `AND m1."remoteJid" NOT LIKE '%@g.us' AND m1."remoteJid" NOT LIKE '%@broadcast' AND m1."remoteJid" NOT LIKE '%@newsletter'`,
+    groups: `AND m1."remoteJid" LIKE '%@g.us'`,
 };
 
 export class ChatService {
@@ -46,19 +46,19 @@ export class ChatService {
             timestamp: Date;
             type: string;
         }>>(`
-            SELECT m1.remoteJid, m1.content, m1.timestamp, m1.type
-            FROM \`Message\` m1
+            SELECT m1."remoteJid", m1."content", m1."timestamp", m1."type"
+            FROM "Message" m1
             INNER JOIN (
-                SELECT remoteJid, MAX(timestamp) as max_ts
-                FROM \`Message\`
-                WHERE sessionId = ?
-                GROUP BY remoteJid
-            ) m2 ON m1.remoteJid = m2.remoteJid AND m1.timestamp = m2.max_ts
-            WHERE m1.sessionId = ?
-            ${before ? 'AND m1.timestamp < ?' : ''}
+                SELECT "remoteJid", MAX("timestamp") AS max_ts
+                FROM "Message"
+                WHERE "sessionId" = $1
+                GROUP BY "remoteJid"
+            ) m2 ON m1."remoteJid" = m2."remoteJid" AND m1."timestamp" = m2.max_ts
+            WHERE m1."sessionId" = $2
+            ${before ? 'AND m1."timestamp" < $3' : ''}
             ${filter && Object.hasOwn(CHAT_FILTER_SQL, filter) ? CHAT_FILTER_SQL[filter] : ''}
-            ORDER BY m1.timestamp DESC
-            LIMIT ?
+            ORDER BY m1."timestamp" DESC
+            LIMIT $${qParams.length}
         `, ...qParams);
 
         // Fast return if no messages
