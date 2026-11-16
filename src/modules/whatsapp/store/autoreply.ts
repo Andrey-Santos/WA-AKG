@@ -4,6 +4,20 @@ import { normalizeMessageContent } from "@whiskeysockets/baileys";
 import { logger } from "@/lib/logger";
 import { logError } from "@/lib/error-log";
 
+/** Tiny in-memory TTL cache (shared by dynamic text and media fetches). Failures are never cached. */
+const cache = new Map<string, { at: number; value: any }>();
+const CACHE_MAX = 30;
+async function cached<T>(key: string, ttlMs: number, load: () => Promise<T>, cacheable: (v: T) => boolean = () => true): Promise<T> {
+    const hit = cache.get(key);
+    if (hit && Date.now() - hit.at < ttlMs) return hit.value as T;
+    const value = await load();
+    if (cacheable(value)) {
+        if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
+        cache.set(key, { at: Date.now(), value });
+    }
+    return value;
+}
+
 /**
  * Replaces every {{url:https://...}} in a response with the text returned by that URL
  * (fetched at reply time, so the content is always current). On failure the token becomes "".
@@ -18,8 +32,10 @@ async function resolveDynamicResponse(text: string, onError?: (msg: string) => v
     for (const m of matches) {
         let replacement = "";
         try {
-            const { buffer } = await safeFetchBuffer(m[1], { maxBytes: 100 * 1024, timeoutMs: 8000 });
-            replacement = buffer.toString("utf8").trim();
+            replacement = await cached(`txt:${m[1]}`, 60_000, async () => {
+                const { buffer } = await safeFetchBuffer(m[1], { maxBytes: 100 * 1024, timeoutMs: 8000 });
+                return buffer.toString("utf8").trim();
+            }, (v) => v.length > 0);
         } catch (err: any) {
             logger.error("AutoReply", `Dynamic content fetch failed for ${m[1]}: ${err.message}`);
             onError?.(`Falha ao buscar o link dinâmico ${m[1]}: ${err.message}`);
@@ -207,10 +223,10 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                             
                             try {
                                 const { safeFetchBuffer } = await import("@/lib/security");
-                                const fetched = await safeFetchBuffer(url, {
+                                const fetched = await cached(`media:${url}`, 10 * 60_000, () => safeFetchBuffer(url, {
                                     maxBytes: 25 * 1024 * 1024,
                                     timeoutMs: 15000
-                                });
+                                }), (f) => f.buffer.length <= 5 * 1024 * 1024);
                                 let { buffer, contentType } = fetched;
                                 const { fileName } = fetched;
 
