@@ -109,14 +109,12 @@ Rate limiting parameters and upload size thresholds.
 
 ---
 
-## 🐳 9. Docker Compose Variables
+## 👤 9. Default Admin
 
-Required ONLY if utilizing the `docker-compose.yml` stack deployment.
+Used by `start.sh` to create the first SuperAdmin.
 
 | Variable | Required | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `MYSQL_ROOT_PASSWORD` | **Yes** | — | Root access password for the MySQL container. |
-| `MYSQL_DATABASE` | No | `wa_akg` | Target schema database name. |
 | `ADMIN_EMAIL` | **Yes** | — | Email of the default SuperAdmin generated on first boot. |
 | `ADMIN_PASSWORD` | **Yes** | — | Password of the default SuperAdmin generated on first boot. |
 

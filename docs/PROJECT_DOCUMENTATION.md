@@ -104,15 +104,12 @@ Every incoming message follows this path:
 
 ## 🚀 Environment & Deployment
 
-Configuration is centralized in `.env`. The project natively supports standard bare-metal builds (`npm run build`) and Docker containerized deployment (`docker-compose.yml`) which coordinates:
-1. A MySQL 8.0 instance with persistent volume storage for schema data.
-2. Next.js gateway web container running on custom tsx server with automated startup database synchronization (`npx prisma db push`).
+Configuration is centralized in `.env`. The project runs as a standard bare-metal Node.js app (`npm run build` + PM2, or `npm run dev`) against a PostgreSQL database (e.g. Neon).
 
-> [!CAUTION]
-> Docker Compose sekarang membaca kredensial dari `.env` file. Jangan gunakan nilai default untuk `AUTH_SECRET`, `MYSQL_ROOT_PASSWORD`, `ADMIN_PASSWORD`, atau `NEXT_PUBLIC_SWAGGER_PASSWORD` di production. Jalankan `cp .env.example .env` dan edit sebelum `docker compose up`.
+> Do not use default values for `AUTH_SECRET`, `ADMIN_PASSWORD` or `NEXT_PUBLIC_SWAGGER_PASSWORD` in production. Run `cp .env.example .env` and edit it before starting.
 
 > [!IMPORTANT]
-> Always run `npm run db:push` after updates on bare-metal, or use Docker Compose which executes this step automatically on container startup.
+> Always run `npm run db:push` after updates.
 
 ---
 <div align="center">

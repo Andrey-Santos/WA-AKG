@@ -15,8 +15,7 @@ body:
       label: Configuration Type
       options:
         - WhatsApp (Baileys / pairing)
-        - Database (MySQL / Prisma)
-        - Docker / Deployment
+        - Database (PostgreSQL / Prisma)
         - Authentication (NextAuth)
         - Environment Variables
         - Other

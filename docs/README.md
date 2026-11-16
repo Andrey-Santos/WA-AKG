@@ -17,7 +17,7 @@ Welcome to the internal documentation portal for **WA-AKG**. Use the links below
 
 ## 🛠️ Infrastructure & Maintenance
 
-- **[Database Setup](./DATABASE_SETUP.md)**: Schema migrations, provider switching, and Docker Compose database stack.
+- **[Database Setup](./DATABASE_SETUP.md)**: Schema migrations and provider switching.
 - **[Update Guide](./UPDATE_GUIDE.md)**: How to sync from upstream and apply patches.
 - **[Quick Reference](./API-QUICK-REFERENCE.md)**: Handy cURL snippets and JID formats.
 

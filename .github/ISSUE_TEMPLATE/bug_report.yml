@@ -24,7 +24,6 @@ body:
       label: Environment
       description: How is it deployed?
       options:
-        - Docker Compose
         - Bare Metal (Node.js directly)
         - VPS (PM2 / systemd)
     validations:
@@ -63,7 +62,7 @@ body:
     id: logs
     attributes:
       label: Logs / Error
-      description: Paste error logs from terminal / Docker
+      description: Paste error logs from terminal
       render: shell
 
   - type: textarea

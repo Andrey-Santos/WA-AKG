@@ -178,23 +178,6 @@ We provide a built-in [start.sh](file:///home/aditya/project/WA-AKG/start.sh) sc
 
 ---
 
-### 🐋 Alternative: Docker Deployment
-Although **PM2 is highly recommended**, you can also deploy using Docker Compose:
-
-1. **Prepare Environment**:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` — set `DATABASE_URL` (points to the MySQL container), `AUTH_SECRET`, and other branding settings.
-
-2. **Start Services**:
-   ```bash
-   docker compose up -d
-   ```
-   This spins up the MySQL database container alongside the Next.js gateway application.
-
----
-
 ## 📚 API Reference Overview
 
 WA-AKG provides a comprehensive REST API to integrate WhatsApp Messaging directly into your applications. Full details in [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md).

@@ -13,12 +13,8 @@ cp .env.example .env
 npm run dev
 ```
 
-Requirements: **Node.js 22+**, **npm 10+**, **MySQL 8.0**
+Requirements: **Node.js 22+**, **npm 10+**, **PostgreSQL (e.g. Neon)**
 
-Using Docker:
-```bash
-docker compose up -d
-```
 
 ## Branch & Commit Convention
 
