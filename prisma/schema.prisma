@@ -391,3 +391,16 @@ model BroadcastRecipient {
 
   @@index([broadcastLogId])
 }
+
+// Failures from auto-reply and broadcast, shown in the dashboard and deletable by the user
+model ErrorLog {
+  id        String   @id @default(cuid())
+  sessionId String   // WA session ID string
+  source    String   // AUTOREPLY | BROADCAST
+  refLabel  String?  // rule keyword or broadcast id
+  target    String?  // recipient JID
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, source, createdAt])
+}

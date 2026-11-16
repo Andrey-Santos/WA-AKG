@@ -584,6 +584,7 @@
     "formattingTip": "Você pode usar a formatação padrão do WhatsApp (*negrito*, _itálico_, ~tachado~). Para inserir o texto retornado por um link, use '{{'url:https://...'}}'.",
     "ignoreAccents": "Ignorar acentos",
     "ignoreAccentsHint": "\"Promoção\" também casa com \"promocao\". Não vale para regras regex.",
+    "duplicate": "Duplicar",
     "toolBold": "Negrito",
     "toolItalic": "Itálico",
     "toolStrike": "Tachado",
@@ -1141,5 +1142,21 @@
     "statCategories": "Categorias",
     "statPost": "Endpoints POST",
     "statGet": "Endpoints GET"
+  },
+  "errorLogs": {
+    "tabErrors": "Erros",
+    "title": "Erros",
+    "descAutoreply": "Falhas ao enviar respostas automáticas.",
+    "descBroadcast": "Falhas ao enviar mensagens de transmissão.",
+    "empty": "Nenhum erro. Tudo funcionando.",
+    "rule": "Regra",
+    "broadcast": "Transmissão",
+    "recipient": "Destinatário",
+    "delete": "Apagar",
+    "deleteAll": "Apagar todos",
+    "confirmDeleteAll": "Apagar todos os erros desta lista?",
+    "deleted": "Erro apagado",
+    "deletedAll": "Todos os erros apagados",
+    "deleteFailed": "Falha ao apagar"
   }
 }

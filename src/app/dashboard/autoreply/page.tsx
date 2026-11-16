@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { ErrorLogPanel } from "@/components/dashboard/error-log-panel";
 import { toast } from "sonner";
-import { BotMessageSquare, Loader2, Plus, Trash2, MessageCircleReply, Image as ImageIcon, Pencil, Link2 } from "lucide-react";
+import { BotMessageSquare, Loader2, Plus, Trash2, MessageCircleReply, Image as ImageIcon, Pencil, Link2, Copy, AlertTriangle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -101,6 +102,8 @@ function ResponseEditor({ value, onChange }: { value: string; onChange: (v: stri
 export default function AutoReplyPage() {
     const t = useTranslations("autoreply");
     const tCommon = useTranslations("common");
+    const tErr = useTranslations("errorLogs");
+    const [view, setView] = useState<"rules" | "errors">("rules");
     const { sessionId } = useSession();
     const [rules, setRules] = useState<AutoReply[]>([]);
     const [loading, setLoading] = useState(false);
@@ -203,6 +206,18 @@ export default function AutoReplyPage() {
         setIgnoreAccents(true);
         setMediaUrl("");
         setMediaType("image");
+    };
+
+    // Opens the create dialog prefilled with this rule so it can be tweaked and saved as a new one
+    const handleDuplicate = (rule: AutoReply) => {
+        setKeyword(rule.keyword);
+        setResponse(rule.response || "");
+        setMatchType(rule.matchType);
+        setTriggerType(rule.triggerType);
+        setIgnoreAccents(!!rule.ignoreAccents);
+        setMediaUrl(rule.mediaUrl || "");
+        setMediaType(rule.mediaType || "image");
+        setIsCreateOpen(true);
     };
 
     const handleEdit = (rule: AutoReply) => {
@@ -359,7 +374,22 @@ export default function AutoReplyPage() {
                 </Dialog>
             </div>
 
-            {loading ? (
+            <div className="inline-flex gap-1 rounded-lg bg-muted p-1">
+                {([["rules", t("title"), BotMessageSquare], ["errors", tErr("tabErrors"), AlertTriangle]] as const).map(([id, label, Icon]) => (
+                    <button
+                        key={id}
+                        onClick={() => setView(id)}
+                        className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${view === id ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                    </button>
+                ))}
+            </div>
+
+            {view === "errors" && <ErrorLogPanel source="AUTOREPLY" />}
+
+            {view === "errors" ? null : loading ? (
                 <div className="flex items-center justify-center p-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
@@ -388,6 +418,9 @@ export default function AutoReplyPage() {
                                         </div>
                                     </div>
                                     <div className="shrink-0 flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted" title={t("duplicate")} onClick={() => handleDuplicate(rule)}>
+                                            <Copy className="w-4 h-4" />
+                                        </Button>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted" onClick={() => handleEdit(rule)}>
                                             <Pencil className="w-4 h-4" />
                                         </Button>

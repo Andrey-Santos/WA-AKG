@@ -2,12 +2,13 @@ import { prisma } from "@/lib/prisma";
 import type { WASocket } from "@whiskeysockets/baileys";
 import { normalizeMessageContent } from "@whiskeysockets/baileys";
 import { logger } from "@/lib/logger";
+import { logError } from "@/lib/error-log";
 
 /**
  * Replaces every {{url:https://...}} in a response with the text returned by that URL
  * (fetched at reply time, so the content is always current). On failure the token becomes "".
  */
-async function resolveDynamicResponse(text: string): Promise<string> {
+async function resolveDynamicResponse(text: string, onError?: (msg: string) => void): Promise<string> {
     const re = /\{\{\s*url:\s*(https?:\/\/[^\s}]+)\s*\}\}/gi;
     const matches = Array.from(text.matchAll(re));
     if (matches.length === 0) return text;
@@ -21,6 +22,7 @@ async function resolveDynamicResponse(text: string): Promise<string> {
             replacement = buffer.toString("utf8").trim();
         } catch (err: any) {
             logger.error("AutoReply", `Dynamic content fetch failed for ${m[1]}: ${err.message}`);
+            onError?.(`Falha ao buscar o link dinâmico ${m[1]}: ${err.message}`);
         }
         result = result.replace(m[0], () => replacement);
     }
@@ -176,7 +178,9 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                         if (triggerType === 'PRIVATE' && isGroup) continue;
 
                         logger.info("AutoReply", `Match: ${rule.keyword} -> ${remoteJid}`);
-                        const responseText = rule.response ? await resolveDynamicResponse(rule.response) : rule.response;
+                        const reportError = (message: string) =>
+                            logError({ sessionId, source: "AUTOREPLY", refLabel: rule.keyword, target: remoteJid, message });
+                        const responseText = rule.response ? await resolveDynamicResponse(rule.response, reportError) : rule.response;
 
                         if (rule.isMedia && rule.mediaUrl) {
                             const url = rule.mediaUrl;
@@ -184,10 +188,19 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                             
                             try {
                                 const { safeFetchBuffer } = await import("@/lib/security");
-                                const { buffer, contentType, fileName } = await safeFetchBuffer(url, {
+                                const fetched = await safeFetchBuffer(url, {
                                     maxBytes: 25 * 1024 * 1024,
                                     timeoutMs: 15000
                                 });
+                                let { buffer, contentType } = fetched;
+                                const { fileName } = fetched;
+
+                                // WhatsApp doesn't render WebP sent as a regular image: convert to JPEG
+                                if (type === "image" && /webp/i.test(contentType || "")) {
+                                    const sharp = (await import("sharp")).default;
+                                    buffer = await sharp(buffer).jpeg({ quality: 90 }).toBuffer();
+                                    contentType = "image/jpeg";
+                                }
 
                                 let payload: any = {};
                                 if (responseText) {
@@ -212,6 +225,7 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                                 await sock.sendMessage(remoteJid, payload, { quoted: msg });
                             } catch (err: any) {
                                 logger.error("AutoReply", `Failed to send media auto-reply: ${err.message}. Falling back to text if response exists.`);
+                                await reportError(`Falha ao enviar a mídia (${url}): ${err.message}${responseText ? " — enviado só o texto" : ""}`);
                                 if (responseText) {
                                     await sock.sendMessage(remoteJid, { text: responseText }, { quoted: msg });
                                 }
@@ -224,8 +238,9 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                     }
                 }
 
-            } catch (e) {
+            } catch (e: any) {
                 logger.error("AutoReply", "Error executing auto-reply", e);
+                await logError({ sessionId, source: "AUTOREPLY", refLabel: null, target: remoteJid, message: `Erro ao executar a resposta automática: ${e?.message || e}` });
             }
         }
     });

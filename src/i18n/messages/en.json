@@ -584,6 +584,7 @@
     "formattingTip": "You can use standard WhatsApp formatting (*bold*, _italic_, ~strikethrough~). To insert the text returned by a link, use '{{'url:https://...'}}'.",
     "ignoreAccents": "Ignore accents",
     "ignoreAccentsHint": "\"Promoção\" also matches \"promocao\". Not applied to regex rules.",
+    "duplicate": "Duplicate",
     "toolBold": "Bold",
     "toolItalic": "Italic",
     "toolStrike": "Strikethrough",
@@ -1141,5 +1142,21 @@
     "statCategories": "Categories",
     "statPost": "POST Endpoints",
     "statGet": "GET Endpoints"
+  },
+  "errorLogs": {
+    "tabErrors": "Errors",
+    "title": "Errors",
+    "descAutoreply": "Failures when sending automatic replies.",
+    "descBroadcast": "Failures when sending broadcast messages.",
+    "empty": "No errors. Everything is working.",
+    "rule": "Rule",
+    "broadcast": "Broadcast",
+    "recipient": "Recipient",
+    "delete": "Delete",
+    "deleteAll": "Delete all",
+    "confirmDeleteAll": "Delete all errors on this list?",
+    "deleted": "Error deleted",
+    "deletedAll": "All errors deleted",
+    "deleteFailed": "Failed to delete"
   }
 }

@@ -584,6 +584,7 @@
     "formattingTip": "Anda dapat menggunakan format standar WhatsApp (*tebal*, _miring_, ~coret~). Untuk menyisipkan teks dari sebuah tautan, gunakan '{{'url:https://...'}}'.",
     "ignoreAccents": "Abaikan aksen",
     "ignoreAccentsHint": "\"Promoção\" juga cocok dengan \"promocao\". Tidak berlaku untuk aturan regex.",
+    "duplicate": "Duplikat",
     "toolBold": "Tebal",
     "toolItalic": "Miring",
     "toolStrike": "Coret",
@@ -1141,5 +1142,21 @@
     "statCategories": "Kategori",
     "statPost": "Endpoint POST",
     "statGet": "Endpoint GET"
+  },
+  "errorLogs": {
+    "tabErrors": "Error",
+    "title": "Error",
+    "descAutoreply": "Kegagalan saat mengirim balasan otomatis.",
+    "descBroadcast": "Kegagalan saat mengirim pesan siaran.",
+    "empty": "Tidak ada error. Semuanya berjalan baik.",
+    "rule": "Aturan",
+    "broadcast": "Siaran",
+    "recipient": "Penerima",
+    "delete": "Hapus",
+    "deleteAll": "Hapus semua",
+    "confirmDeleteAll": "Hapus semua error di daftar ini?",
+    "deleted": "Error dihapus",
+    "deletedAll": "Semua error dihapus",
+    "deleteFailed": "Gagal menghapus"
   }
 }

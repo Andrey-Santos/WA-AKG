@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { waManager } from "@/modules/whatsapp/manager";
 import { getAuthenticatedUser, canAccessSession } from "@/lib/api-auth";
 import { sanitizePhoneToJid } from "@/lib/jid-utils";
+import { logError } from "@/lib/error-log";
 import type { AnyMessageContent } from "@whiskeysockets/baileys";
 import { z } from "zod";
 
@@ -162,6 +163,7 @@ export async function POST(
                     failed++;
                     errors.push({ jid, error: e.message || "Unknown error" });
                     console.error(`Failed to send broadcast to ${jid}`, e);
+                    await logError({ sessionId, source: "BROADCAST", refLabel: broadcastId, target: jid, message: e.message || "Unknown error" });
 
                     // Update recipient error in DB
                     await prisma.broadcastRecipient.updateMany({

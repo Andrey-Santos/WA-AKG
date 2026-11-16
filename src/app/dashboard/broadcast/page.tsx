@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ErrorLogPanel } from "@/components/dashboard/error-log-panel";
 import { Users, RefreshCw, Send, CheckCircle2, XCircle, Radio, Clock, AlertTriangle, History, Eye, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/components/dashboard/session-provider";
@@ -56,6 +57,7 @@ interface BroadcastRecipient {
 export default function BroadcastPage() {
     const t = useTranslations("broadcast");
     const tCommon = useTranslations("common");
+    const tErr = useTranslations("errorLogs");
     const { sessionId } = useSession();
     type Row = { number: string; name: string };
     const emptyRows = (n: number): Row[] => Array.from({ length: n }, () => ({ number: "", name: "" }));
@@ -65,7 +67,7 @@ export default function BroadcastPage() {
     const [antiBan, setAntiBan] = useState(true);
     const [loading, setLoading] = useState(false);
     const [broadcastProgress, setBroadcastProgress] = useState<BroadcastProgress | null>(null);
-    const [activeTab, setActiveTab] = useState<"new" | "history">("new");
+    const [activeTab, setActiveTab] = useState<"new" | "history" | "errors">("new");
 
     // History
     const [history, setHistory] = useState<BroadcastLog[]>([]);
@@ -320,6 +322,7 @@ export default function BroadcastPage() {
     const tabs = [
         { id: "new" as const, label: t("tabNew"), icon: Send },
         { id: "history" as const, label: t("tabHistory"), icon: History },
+        { id: "errors" as const, label: tErr("tabErrors"), icon: AlertTriangle },
     ];
 
     return (
@@ -533,6 +536,8 @@ export default function BroadcastPage() {
                         )}
                     </>
                 )}
+
+                {activeTab === "errors" && <ErrorLogPanel source="BROADCAST" />}
 
                 {activeTab === "history" && (
                     <Card>
