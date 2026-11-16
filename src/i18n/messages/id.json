@@ -582,6 +582,8 @@
     "dialogEditTitle": "Edit Aturan Balas Otomatis",
     "dialogEditDescription": "Ubah aturan respons berbasis kata kunci.",
     "formattingTip": "Anda dapat menggunakan format standar WhatsApp (*tebal*, _miring_, ~coret~). Untuk menyisipkan teks dari sebuah tautan, gunakan '{{'url:https://...'}}'.",
+    "ignoreAccents": "Abaikan aksen",
+    "ignoreAccentsHint": "\"Promoção\" juga cocok dengan \"promocao\". Tidak berlaku untuk aturan regex.",
     "toolBold": "Tebal",
     "toolItalic": "Miring",
     "toolStrike": "Coret",

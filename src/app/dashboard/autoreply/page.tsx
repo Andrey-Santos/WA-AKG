@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { BotMessageSquare, Loader2, Plus, Trash2, MessageCircleReply, Image as ImageIcon, Pencil, Link2 } from "lucide-react";
 import {
@@ -44,6 +45,7 @@ interface AutoReply {
     mediaUrl: string | null;
     mediaType: string | null;
     triggerType: string;
+    ignoreAccents?: boolean;
     createdAt: Date;
 }
 
@@ -111,6 +113,8 @@ export default function AutoReplyPage() {
     const [response, setResponse] = useState("");
     const [matchType, setMatchType] = useState("EXACT");
     const [triggerType, setTriggerType] = useState("ALL");
+    const [ignoreAccents, setIgnoreAccents] = useState(true);
+    const [editIgnoreAccents, setEditIgnoreAccents] = useState(false);
     const [mediaUrl, setMediaUrl] = useState("");
     const [mediaType, setMediaType] = useState("image");
 
@@ -160,6 +164,7 @@ export default function AutoReplyPage() {
                 response: response.trim(),
                 matchType,
                 triggerType,
+                ignoreAccents,
                 isMedia: !!mediaUrl.trim(),
                 mediaUrl: mediaUrl.trim() || null,
                 mediaType: mediaType || null
@@ -195,6 +200,7 @@ export default function AutoReplyPage() {
         setResponse("");
         setMatchType("EXACT");
         setTriggerType("ALL");
+        setIgnoreAccents(true);
         setMediaUrl("");
         setMediaType("image");
     };
@@ -205,6 +211,7 @@ export default function AutoReplyPage() {
         setEditResponse(rule.response || "");
         setEditMatchType(rule.matchType);
         setEditTriggerType(rule.triggerType);
+        setEditIgnoreAccents(!!rule.ignoreAccents);
         setEditMediaUrl(rule.mediaUrl || "");
         setEditMediaType(rule.mediaType || "image");
         setIsEditOpen(true);
@@ -224,6 +231,7 @@ export default function AutoReplyPage() {
                 response: editResponse.trim(),
                 matchType: editMatchType,
                 triggerType: editTriggerType,
+                ignoreAccents: editIgnoreAccents,
                 isMedia: !!editMediaUrl.trim(),
                 mediaUrl: editMediaUrl.trim() || null,
                 mediaType: editMediaType || null
@@ -302,6 +310,14 @@ export default function AutoReplyPage() {
                                         <SelectItem value="GROUP">{t("triggerGroups")}</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="ignoreAccents">{t("ignoreAccents")}</Label>
+                                    <p className="text-xs text-muted-foreground">{t("ignoreAccentsHint")}</p>
+                                </div>
+                                <Switch id="ignoreAccents" checked={ignoreAccents} onCheckedChange={setIgnoreAccents} />
                             </div>
 
                             <div className="space-y-2">
@@ -462,6 +478,14 @@ export default function AutoReplyPage() {
                                     <SelectItem value="GROUP">{t("triggerGroups")}</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="editIgnoreAccents">{t("ignoreAccents")}</Label>
+                                <p className="text-xs text-muted-foreground">{t("ignoreAccentsHint")}</p>
+                            </div>
+                            <Switch id="editIgnoreAccents" checked={editIgnoreAccents} onCheckedChange={setEditIgnoreAccents} />
                         </div>
 
                         <div className="space-y-2">

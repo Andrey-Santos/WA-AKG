@@ -157,6 +157,7 @@ model AutoReply {
   mediaUrl    String?
   mediaType   String?
   triggerType String   @default("ALL") // ALL, GROUP, PRIVATE
+  ignoreAccents Boolean @default(false) // EXACT/CONTAINS: compare without diacritics
   createdAt   DateTime @default(now())
 
   session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)

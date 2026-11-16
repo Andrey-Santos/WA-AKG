@@ -582,6 +582,8 @@
     "dialogEditTitle": "Editar regra de resposta automática",
     "dialogEditDescription": "Modifique a regra de resposta baseada em palavra-chave.",
     "formattingTip": "Você pode usar a formatação padrão do WhatsApp (*negrito*, _itálico_, ~tachado~). Para inserir o texto retornado por um link, use '{{'url:https://...'}}'.",
+    "ignoreAccents": "Ignorar acentos",
+    "ignoreAccentsHint": "\"Promoção\" também casa com \"promocao\". Não vale para regras regex.",
     "toolBold": "Negrito",
     "toolItalic": "Itálico",
     "toolStrike": "Tachado",

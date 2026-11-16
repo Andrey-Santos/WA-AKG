@@ -142,8 +142,13 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
 
                 for (const rule of rules) {
                     let match = false;
-                    const keyword = rule.keyword.toLowerCase();
-                    const incoming = text.toLowerCase();
+                    // Optional per-rule accent-insensitive comparison (NFD + strip combining marks)
+                    const fold = (s: string) => {
+                        const lower = s.toLowerCase();
+                        return (rule as any).ignoreAccents ? lower.normalize("NFD").replace(/[̀-ͯ]/g, "") : lower;
+                    };
+                    const keyword = fold(rule.keyword);
+                    const incoming = fold(text);
 
                     switch (rule.matchType) {
                         case 'EXACT':

@@ -582,6 +582,8 @@
     "dialogEditTitle": "Edit Auto-Reply Rule",
     "dialogEditDescription": "Modify the keyword-based response rule.",
     "formattingTip": "You can use standard WhatsApp formatting (*bold*, _italic_, ~strikethrough~). To insert the text returned by a link, use '{{'url:https://...'}}'.",
+    "ignoreAccents": "Ignore accents",
+    "ignoreAccentsHint": "\"Promoção\" also matches \"promocao\". Not applied to regex rules.",
     "toolBold": "Bold",
     "toolItalic": "Italic",
     "toolStrike": "Strikethrough",
