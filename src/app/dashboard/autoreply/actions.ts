@@ -35,7 +35,7 @@ export async function getAutoReplies(sessionId: string) {
 }
 
 // Create a new auto reply directly to DB
-export async function createAutoReply(sessionId: string, data: { keyword: string; response?: string; matchType: string; isMedia: boolean; mediaUrl?: string | null; mediaType?: string | null; triggerType: string; ignoreAccents?: boolean }) {
+export async function createAutoReply(sessionId: string, data: { keyword: string; response?: string; matchType: string; isMedia: boolean; mediaUrl?: string | null; mediaType?: string | null; triggerType: string; ignoreAccents?: boolean; interactive?: any | null }) {
     const nextAuthSession = await getAuthenticatedUserForAction();
     if (!nextAuthSession) {
         throw new Error("Unauthorized");
@@ -69,7 +69,8 @@ export async function createAutoReply(sessionId: string, data: { keyword: string
         mediaType: data.mediaType || null,
         // @ts-ignore
         triggerType: data.triggerType || "ALL",
-        ignoreAccents: !!data.ignoreAccents
+        ignoreAccents: !!data.ignoreAccents,
+        interactive: data.interactive ?? Prisma.DbNull
     };
 
     const newRule = await prisma.autoReply.create({
@@ -103,7 +104,7 @@ export async function deleteAutoReply(sessionId: string, ruleId: string) {
     return { success: true };
 }
 
-export async function updateAutoReply(sessionId: string, ruleId: string, data: { keyword: string; response?: string; matchType: string; isMedia: boolean; mediaUrl?: string | null; mediaType?: string | null; triggerType: string; ignoreAccents?: boolean }) {
+export async function updateAutoReply(sessionId: string, ruleId: string, data: { keyword: string; response?: string; matchType: string; isMedia: boolean; mediaUrl?: string | null; mediaType?: string | null; triggerType: string; ignoreAccents?: boolean; interactive?: any | null }) {
     const nextAuthSession = await getAuthenticatedUserForAction();
     if (!nextAuthSession) {
         throw new Error("Unauthorized");
@@ -136,7 +137,8 @@ export async function updateAutoReply(sessionId: string, ruleId: string, data: {
         mediaType: data.mediaType || null,
         // @ts-ignore
         triggerType: data.triggerType || "ALL",
-        ignoreAccents: !!data.ignoreAccents
+        ignoreAccents: !!data.ignoreAccents,
+        interactive: data.interactive ?? Prisma.DbNull
     };
 
     const updatedRule = await prisma.autoReply.update({

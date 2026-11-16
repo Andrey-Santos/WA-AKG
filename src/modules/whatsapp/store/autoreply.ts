@@ -29,6 +29,25 @@ async function resolveDynamicResponse(text: string, onError?: (msg: string) => v
     return result;
 }
 
+type InteractiveButton = { type: string; displayText: string; value?: string };
+
+function hasInteractive(rule: any): boolean {
+    return Array.isArray(rule?.interactive?.buttons) && rule.interactive.buttons.length > 0;
+}
+
+/** Maps the stored { type, displayText, value } buttons to the interactive payload used by the sender. */
+function buildInteractivePayload(rule: any, body: string) {
+    const buttons = (rule.interactive.buttons as InteractiveButton[]).map((b, i) => {
+        switch (b.type) {
+            case "cta_url": return { type: "cta_url", displayText: b.displayText, url: b.value || "" };
+            case "cta_call": return { type: "cta_call", displayText: b.displayText, phoneNumber: b.value || "" };
+            case "cta_copy": return { type: "cta_copy", displayText: b.displayText, copyCode: b.value || "" };
+            default: return { type: "quick_reply", displayText: b.displayText, id: `btn_${i + 1}` };
+        }
+    });
+    return { title: rule.interactive.title || "", body, footer: rule.interactive.footer || "", buttons };
+}
+
 // Helper for permission check (Deduplicate from command-handler if possible, but keep simple here)
 function canAutoReply(config: any, fromMe: boolean, senderJid: string): boolean {
     if (!config || !config.enabled) return false;
@@ -229,6 +248,14 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                                 if (responseText) {
                                     await sock.sendMessage(remoteJid, { text: responseText }, { quoted: msg });
                                 }
+                            }
+                        } else if (responseText && hasInteractive(rule)) {
+                            try {
+                                await sock.sendMessage(remoteJid, { interactiveMessage: buildInteractivePayload(rule, responseText) } as any, { quoted: msg });
+                            } catch (err: any) {
+                                logger.error("AutoReply", `Failed to send interactive auto-reply: ${err.message}. Falling back to text.`);
+                                await reportError(`Falha ao enviar a mensagem interativa: ${err.message} — enviado só o texto`);
+                                await sock.sendMessage(remoteJid, { text: responseText }, { quoted: msg });
                             }
                         } else if (responseText) {
                             await sock.sendMessage(remoteJid, { text: responseText }, { quoted: msg });

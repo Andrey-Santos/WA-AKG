@@ -58,7 +58,7 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { keyword, response, matchType, isMedia, mediaUrl, mediaType, triggerType, ignoreAccents } = body;
+        const { keyword, response, matchType, isMedia, mediaUrl, mediaType, triggerType, ignoreAccents, interactive } = body;
 
         if (!keyword || (!response && !mediaUrl)) {
             return NextResponse.json({ status: false, message: "Keyword and either response or media are required", error: "Missing required fields" }, { status: 400 });
@@ -99,7 +99,8 @@ export async function POST(
             mediaType: mediaType || null,
             // @ts-ignore: triggerType exists in generated schema but may be stale in editor types
             triggerType: (triggerType as string) || "ALL",
-            ignoreAccents: !!ignoreAccents
+            ignoreAccents: !!ignoreAccents,
+            interactive: interactive ?? undefined
         };
 
         const newRule = await prisma.autoReply.create({

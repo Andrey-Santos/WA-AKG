@@ -158,6 +158,7 @@ model AutoReply {
   mediaType   String?
   triggerType String   @default("ALL") // ALL, GROUP, PRIVATE
   ignoreAccents Boolean @default(false) // EXACT/CONTAINS: compare without diacritics
+  interactive Json?    // { title?, footer?, buttons: [{ type, displayText, value }] } sent with the response text as body
   createdAt   DateTime @default(now())
 
   session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)

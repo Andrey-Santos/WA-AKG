@@ -47,6 +47,7 @@ interface AutoReply {
     mediaType: string | null;
     triggerType: string;
     ignoreAccents?: boolean;
+    interactive?: InteractiveCfg | null;
     createdAt: Date;
 }
 
@@ -99,6 +100,102 @@ function ResponseEditor({ value, onChange }: { value: string; onChange: (v: stri
     );
 }
 
+type IButton = { type: string; displayText: string; value: string };
+type InteractiveCfg = { title: string; footer: string; buttons: IButton[] };
+
+// Optional interactive (native buttons) message: the reply text becomes the body.
+function InteractiveEditor({ value, onChange }: { value: InteractiveCfg | null; onChange: (v: InteractiveCfg | null) => void }) {
+    const t = useTranslations("autoreply");
+
+    const templates: Record<string, InteractiveCfg> = {
+        quick: { title: t("sampleTitleConfirm"), footer: t("sampleFooterChoose"), buttons: [
+            { type: "quick_reply", displayText: t("sampleYes"), value: "" },
+            { type: "quick_reply", displayText: t("sampleNo"), value: "" },
+            { type: "quick_reply", displayText: t("sampleTalk"), value: "" },
+        ] },
+        cta: { title: "", footer: t("sampleFooterCatalog"), buttons: [
+            { type: "cta_url", displayText: t("sampleSite"), value: "https://" },
+            { type: "cta_call", displayText: t("sampleCall"), value: "+55" },
+            { type: "cta_copy", displayText: t("sampleCopy"), value: "" },
+        ] },
+        notice: { title: "", footer: t("sampleFooterCatalog"), buttons: [
+            { type: "quick_reply", displayText: t("sampleOk"), value: "" },
+            { type: "cta_url", displayText: t("sampleSite"), value: "https://" },
+        ] },
+    };
+
+    const setButton = (i: number, patch: Partial<IButton>) =>
+        value && onChange({ ...value, buttons: value.buttons.map((b, idx) => (idx === i ? { ...b, ...patch } : b)) });
+    const valuePlaceholder: Record<string, string> = { cta_url: "https://...", cta_call: "+5511999999999", cta_copy: t("btnValueCopy") };
+
+    return (
+        <div className="space-y-3 rounded-md border p-3">
+            <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                    <Label htmlFor="interactive-on">{t("interactiveSection")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("interactiveHint")}</p>
+                </div>
+                <Switch id="interactive-on" checked={!!value} onCheckedChange={(on) => onChange(on ? templates.quick : null)} />
+            </div>
+
+            {value && (
+                <div className="space-y-3">
+                    <div className="space-y-2">
+                        <Label>{t("interactiveTemplate")}</Label>
+                        <Select value="" onValueChange={(k) => onChange(templates[k])}>
+                            <SelectTrigger><SelectValue placeholder={t("interactiveTemplatePlaceholder")} /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="quick">{t("tplQuick")}</SelectItem>
+                                <SelectItem value="cta">{t("tplCta")}</SelectItem>
+                                <SelectItem value="notice">{t("tplNotice")}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <Label>{t("interactiveTitleField")}</Label>
+                            <Input value={value.title} onChange={e => onChange({ ...value, title: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>{t("interactiveFooter")}</Label>
+                            <Input value={value.footer} onChange={e => onChange({ ...value, footer: e.target.value })} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        {value.buttons.map((b, i) => (
+                            <div key={i} className="grid grid-cols-[130px_1fr_auto] gap-2 items-start">
+                                <Select value={b.type} onValueChange={(v) => setButton(i, { type: v })}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="quick_reply">{t("btnTypeQuick")}</SelectItem>
+                                        <SelectItem value="cta_url">{t("btnTypeUrl")}</SelectItem>
+                                        <SelectItem value="cta_call">{t("btnTypeCall")}</SelectItem>
+                                        <SelectItem value="cta_copy">{t("btnTypeCopy")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div className="space-y-2 min-w-0">
+                                    <Input value={b.displayText} placeholder={t("btnText")} onChange={e => setButton(i, { displayText: e.target.value })} />
+                                    {b.type !== "quick_reply" && (
+                                        <Input value={b.value} placeholder={valuePlaceholder[b.type]} onChange={e => setButton(i, { value: e.target.value })} />
+                                    )}
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10" onClick={() => onChange({ ...value, buttons: value.buttons.filter((_, idx) => idx !== i) })}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        {value.buttons.length < 3 && (
+                            <Button type="button" variant="outline" size="sm" onClick={() => onChange({ ...value, buttons: [...value.buttons, { type: "quick_reply", displayText: "", value: "" }] })}>
+                                <Plus className="mr-2 h-4 w-4" />{t("addButton")}
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function AutoReplyPage() {
     const t = useTranslations("autoreply");
     const tCommon = useTranslations("common");
@@ -118,6 +215,8 @@ export default function AutoReplyPage() {
     const [triggerType, setTriggerType] = useState("ALL");
     const [ignoreAccents, setIgnoreAccents] = useState(true);
     const [editIgnoreAccents, setEditIgnoreAccents] = useState(false);
+    const [interactive, setInteractive] = useState<InteractiveCfg | null>(null);
+    const [editInteractive, setEditInteractive] = useState<InteractiveCfg | null>(null);
     const [mediaUrl, setMediaUrl] = useState("");
     const [mediaType, setMediaType] = useState("image");
 
@@ -168,6 +267,7 @@ export default function AutoReplyPage() {
                 matchType,
                 triggerType,
                 ignoreAccents,
+                interactive: interactive && interactive.buttons.length ? interactive : null,
                 isMedia: !!mediaUrl.trim(),
                 mediaUrl: mediaUrl.trim() || null,
                 mediaType: mediaType || null
@@ -204,6 +304,7 @@ export default function AutoReplyPage() {
         setMatchType("EXACT");
         setTriggerType("ALL");
         setIgnoreAccents(true);
+        setInteractive(null);
         setMediaUrl("");
         setMediaType("image");
     };
@@ -215,6 +316,7 @@ export default function AutoReplyPage() {
         setMatchType(rule.matchType);
         setTriggerType(rule.triggerType);
         setIgnoreAccents(!!rule.ignoreAccents);
+        setInteractive(rule.interactive ?? null);
         setMediaUrl(rule.mediaUrl || "");
         setMediaType(rule.mediaType || "image");
         setIsCreateOpen(true);
@@ -227,6 +329,7 @@ export default function AutoReplyPage() {
         setEditMatchType(rule.matchType);
         setEditTriggerType(rule.triggerType);
         setEditIgnoreAccents(!!rule.ignoreAccents);
+        setEditInteractive(rule.interactive ?? null);
         setEditMediaUrl(rule.mediaUrl || "");
         setEditMediaType(rule.mediaType || "image");
         setIsEditOpen(true);
@@ -247,6 +350,7 @@ export default function AutoReplyPage() {
                 matchType: editMatchType,
                 triggerType: editTriggerType,
                 ignoreAccents: editIgnoreAccents,
+                interactive: editInteractive && editInteractive.buttons.length ? editInteractive : null,
                 isMedia: !!editMediaUrl.trim(),
                 mediaUrl: editMediaUrl.trim() || null,
                 mediaType: editMediaType || null
@@ -339,6 +443,8 @@ export default function AutoReplyPage() {
                                 <Label>{t("response")}</Label>
                                 <ResponseEditor value={response} onChange={setResponse} />
                             </div>
+
+                            <InteractiveEditor value={interactive} onChange={setInteractive} />
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -525,6 +631,8 @@ export default function AutoReplyPage() {
                             <Label>{t("response")}</Label>
                             <ResponseEditor value={editResponse} onChange={setEditResponse} />
                         </div>
+
+                        <InteractiveEditor value={editInteractive} onChange={setEditInteractive} />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>{t("mediaUrl")}</Label>

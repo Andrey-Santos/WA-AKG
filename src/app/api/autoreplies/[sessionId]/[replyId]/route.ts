@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getAuthenticatedUser, canAccessSession } from "@/lib/api-auth";
 
 export async function PUT(
@@ -33,7 +34,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { keyword, response, matchType, triggerType, isMedia, mediaUrl, mediaType, ignoreAccents } = body;
+        const { keyword, response, matchType, triggerType, isMedia, mediaUrl, mediaType, ignoreAccents, interactive } = body;
 
         if (!keyword || (!response && !mediaUrl)) {
             return NextResponse.json({ status: false, message: "Keyword and either response or media are required", error: "Keyword and response are required" }, { status: 400 });
@@ -58,6 +59,7 @@ export async function PUT(
                 matchType: matchType || "EXACT",
                 triggerType: triggerType || "ALL",
                 ignoreAccents: !!ignoreAccents,
+                ...(interactive !== undefined && { interactive: interactive ?? Prisma.DbNull }),
                 isMedia: isMedia || false,
                 mediaUrl: mediaUrl || null,
                 mediaType: mediaType || null
