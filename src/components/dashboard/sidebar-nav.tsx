@@ -224,6 +224,7 @@ function NavLink({ item, active, isCollapsed }: { item: NavItem; active: boolean
     const linkContent = (
         <Link
             href={item.href}
+            prefetch={false}
             target={item.external ? "_blank" : undefined}
             className={`
                 flex items-center rounded-lg text-sm font-medium
