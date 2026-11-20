@@ -69,6 +69,8 @@ export class WhatsAppInstance {
             browser: ["Ubuntu", "Chrome", "20.0.04"],
             markOnlineOnConnect: botConfig?.alwaysOnline ?? true,
             syncFullHistory: true,
+            // Link no texto vira cartao com imagem (usa link-preview-js).
+            generateHighQualityLinkPreview: true,
         });
 
         // Attach Lekzo Baileys compatible helper methods
