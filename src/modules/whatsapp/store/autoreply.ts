@@ -215,8 +215,10 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                         logger.info("AutoReply", `Match: ${rule.keyword} -> ${remoteJid}`);
                         const reportError = (message: string) =>
                             logError({ sessionId, source: "AUTOREPLY", refLabel: rule.keyword, target: remoteJid, message });
+                        const t0 = Date.now(); const tm: string[] = [];
                         const responseText = rule.response ? await resolveDynamicResponse(rule.response, reportError) : rule.response;
 
+                        tm.push(`texto=${Date.now() - t0}ms`);
                         if (rule.isMedia && rule.mediaUrl) {
                             const url = rule.mediaUrl;
                             const type = (rule as any).mediaType || "document";
@@ -227,6 +229,7 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                                     maxBytes: 25 * 1024 * 1024,
                                     timeoutMs: 15000
                                 }), (f) => f.buffer.length <= 5 * 1024 * 1024);
+                                tm.push(`download=${Date.now() - t0}ms`);
                                 let { buffer, contentType } = fetched;
                                 const { fileName } = fetched;
 
@@ -258,6 +261,8 @@ export async function bindAutoReply(sock: WASocket, sessionId: string) {
                                 }
 
                                 await sock.sendMessage(remoteJid, payload, { quoted: msg });
+                                tm.push(`envio=${Date.now() - t0}ms`);
+                                logger.info("AutoReply", `[timing] ${rule.keyword}: ${tm.join(" ")}`);
                             } catch (err: any) {
                                 logger.error("AutoReply", `Failed to send media auto-reply: ${err.message}. Falling back to text if response exists.`);
                                 await reportError(`Falha ao enviar a mídia (${url}): ${err.message}${responseText ? " — enviado só o texto" : ""}`);
