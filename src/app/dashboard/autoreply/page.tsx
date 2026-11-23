@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ErrorLogPanel } from "@/components/dashboard/error-log-panel";
+import { IgnoredContactsPanel } from "@/components/dashboard/ignored-contacts-panel";
 import { toast } from "sonner";
-import { BotMessageSquare, Loader2, Plus, Trash2, MessageCircleReply, Image as ImageIcon, Pencil, Link2, Copy, AlertTriangle } from "lucide-react";
+import { BotMessageSquare, Loader2, Plus, Trash2, MessageCircleReply, Image as ImageIcon, Pencil, Link2, Copy, AlertTriangle, UserX } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -200,7 +201,7 @@ export default function AutoReplyPage() {
     const t = useTranslations("autoreply");
     const tCommon = useTranslations("common");
     const tErr = useTranslations("errorLogs");
-    const [view, setView] = useState<"rules" | "errors">("rules");
+    const [view, setView] = useState<"rules" | "ignored" | "errors">("rules");
     const { sessionId } = useSession();
     const [rules, setRules] = useState<AutoReply[]>([]);
     const [loading, setLoading] = useState(false);
@@ -481,7 +482,7 @@ export default function AutoReplyPage() {
             </div>
 
             <div className="inline-flex gap-1 rounded-lg bg-muted p-1">
-                {([["rules", t("title"), BotMessageSquare], ["errors", tErr("tabErrors"), AlertTriangle]] as const).map(([id, label, Icon]) => (
+                {([["rules", t("title"), BotMessageSquare], ["ignored", t("tabIgnored"), UserX], ["errors", tErr("tabErrors"), AlertTriangle]] as const).map(([id, label, Icon]) => (
                     <button
                         key={id}
                         onClick={() => setView(id)}
@@ -494,8 +495,9 @@ export default function AutoReplyPage() {
             </div>
 
             {view === "errors" && <ErrorLogPanel source="AUTOREPLY" />}
+            {view === "ignored" && <IgnoredContactsPanel />}
 
-            {view === "errors" ? null : loading ? (
+            {view !== "rules" ? null : loading ? (
                 <div className="flex items-center justify-center p-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
