@@ -78,7 +78,7 @@ export default function ApiDocsPage() {
         { category: "Messaging", method: "POST", path: "/api/messages/[sessionId]/[jid]/[messageId]/react", description: "Send reaction", params: "Path: sessionId, jid, messageId" },
         { category: "Messaging", method: "POST", path: "/api/messages/[sessionId]/[jid]/contact", description: "Send contact", params: "Path: sessionId, jid, Body: { vcard }" },
         { category: "Messaging", method: "POST", path: "/api/messages/[sessionId]/[jid]/forward", description: "Forward message", params: "Path: sessionId, jid, Body: { messageId }" },
-        { category: "Messaging", method: "POST", path: "/api/messages/[sessionId]/broadcast", description: "Broadcast message", params: "Path: sessionId, Body: { recipients[], message, delay }" },
+        { category: "Messaging", method: "POST", path: "/api/messages/[sessionId]/broadcast", description: "Broadcast message", params: "Path: sessionId, Body: { recipients[], message (supports @Nome), recipientNames?: { [recipient]: name }, delay?: ms, antiBan?: boolean (default true) }" },
         { category: "Messaging", method: "GET", path: "/api/messages/[sessionId]/broadcast/history", description: "Get broadcast history", params: "Path: sessionId, Query: limit, offset" },
         { category: "Messaging", method: "GET", path: "/api/messages/[sessionId]/broadcast/history/[logId]", description: "Get broadcast detail", params: "Path: sessionId, logId" },
         { category: "Messaging", method: "DELETE", path: "/api/messages/[sessionId]/[jid]/[messageId]", description: "Delete message", params: "Path: sessionId, jid, messageId" },
@@ -148,10 +148,12 @@ export default function ApiDocsPage() {
 
         // Auto Reply
         { category: "Auto Reply", method: "GET", path: "/api/autoreplies/[sessionId]", description: "List auto replies", params: "Path: sessionId" },
-        { category: "Auto Reply", method: "POST", path: "/api/autoreplies/[sessionId]", description: "Create auto reply", params: "Path: sessionId, Body: { keyword, response, matchType }" },
+        { category: "Auto Reply", method: "POST", path: "/api/autoreplies/[sessionId]", description: "Create auto reply", params: "Path: sessionId, Body: { keyword, response ({{url:...}} supported), matchType, triggerType, isMedia, mediaUrl, mediaType, ignoreAccents?, interactive?: { title?, footer?, buttons[] } }" },
         { category: "Auto Reply", method: "GET", path: "/api/autoreplies/[sessionId]/[id]", description: "Get auto reply", params: "Path: sessionId, id" },
-        { category: "Auto Reply", method: "PUT", path: "/api/autoreplies/[sessionId]/[id]", description: "Update auto reply", params: "Path: sessionId, id, Body: { ... }" },
+        { category: "Auto Reply", method: "PUT", path: "/api/autoreplies/[sessionId]/[id]", description: "Update auto reply", params: "Path: sessionId, id, Body: same fields as create" },
         { category: "Auto Reply", method: "DELETE", path: "/api/autoreplies/[sessionId]/[id]", description: "Delete auto reply", params: "Path: sessionId, id" },
+        { category: "Error Logs", method: "GET", path: "/api/error-logs/[sessionId]", description: "List auto-reply / broadcast errors", params: "Path: sessionId, Query: source=AUTOREPLY|BROADCAST" },
+        { category: "Error Logs", method: "DELETE", path: "/api/error-logs/[sessionId]", description: "Delete one error (id) or all of a source", params: "Path: sessionId, Query: id | source" },
 
         // Auto Reply (Legacy)
         { category: "Auto Reply", method: "GET", path: "/api/autoreplies", description: "List auto replies [DEPRECATED]", params: "Query: sessionId" },

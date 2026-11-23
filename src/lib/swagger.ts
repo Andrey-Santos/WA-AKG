@@ -1216,7 +1216,7 @@ All endpoints require authentication via:
                     post: {
                         tags: ["Messaging"],
                         summary: "Broadcast message to multiple recipients",
-                        description: "Send same message to multiple contacts with anti-ban delays (10-20s random)",
+                        description: "Send the same text to many contacts in the background. Each send first checks the number on WhatsApp (numbers that are not on WhatsApp are reported as failed). Use @Nome in the message to insert each recipient's name (see recipientNames). Anti-ban (default on): random 10-30s delay between sends, a 2-5 min pause every 20 sends, a typing indicator, and a cap of 100 sends per rolling hour. Failures are stored and listed at GET /error-logs/{sessionId}?source=BROADCAST.",
                         parameters: [
                             { name: "sessionId", in: "path", required: true, schema: { type: "string" } }
                         ],
@@ -1232,8 +1232,15 @@ All endpoints require authentication via:
                                                 items: { type: "string" },
                                                 example: ["628123456789@s.whatsapp.net", "628987654321@s.whatsapp.net"]
                                             },
-                                            message: { type: "string", example: "Flash Sale! 50% off" },
-                                            delay: { type: "number", description: "Optional delay (unused)" }
+                                            recipientNames: {
+                                                type: "object",
+                                                additionalProperties: { type: "string" },
+                                                description: "Optional name per recipient, keyed by the same value sent in `recipients`. Replaces @Nome in the message (case-insensitive); empty when no name is given.",
+                                                example: { "628123456789@s.whatsapp.net": "Ana", "628987654321@s.whatsapp.net": "Bruno" }
+                                            },
+                                            message: { type: "string", example: "Hi @Nome, your appointment is tomorrow at 10:00" },
+                                            delay: { type: "number", description: "Optional base delay between sends in milliseconds (a random jitter of up to +50% is added). Default: random 10000-30000.", example: 15000 },
+                                            antiBan: { type: "boolean", default: true, description: "Anti-ban protections: 2-5 min pause every 20 sends and a hard cap of 100 sends per rolling hour. Set false to disable them (higher risk of the number being banned)." }
                                         }
                                     }
                                 }
@@ -1247,13 +1254,21 @@ All endpoints require authentication via:
                                         schema: {
                                             type: "object",
                                             properties: {
-                                                success: { type: "boolean", example: true },
-                                                message: { type: "string", example: "Broadcast started in background" }
+                                                status: { type: "boolean", example: true },
+                                                message: { type: "string", example: "Broadcast started" },
+                                                data: {
+                                                    type: "object",
+                                                    properties: {
+                                                        broadcastId: { type: "string", description: "Use it with GET /messages/{sessionId}/broadcast/history/{logId} to follow progress" },
+                                                        total: { type: "integer", description: "Number of valid, de-duplicated recipients" }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             },
+                            400: { description: "Invalid body or no valid recipient" },
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { $ref: "#/components/responses/Forbidden" },
                             503: { $ref: "#/components/responses/SessionNotReady" },
@@ -2770,12 +2785,34 @@ All endpoints require authentication via:
                                         required: ["keyword"],
                                         properties: {
                                             keyword: { type: "string" },
-                                            response: { type: "string" },
-                                            matchType: { type: "string", enum: ["EXACT", "CONTAINS", "STARTS_WITH", "REGEX"] },
+                                            response: { type: "string", description: "Reply text. Use {{url:https://...}} to insert the text returned by that URL at reply time (cached for 60s). With `interactive`, this text is the message body." },
+                                            matchType: { type: "string", enum: ["EXACT", "CONTAINS", "REGEX"] },
                                             isMedia: { type: "boolean" },
-                                            mediaUrl: { type: "string" },
+                                            mediaUrl: { type: "string", description: "Public URL of the media. The response text is sent as the caption. WebP images are converted to JPEG." },
                                             mediaType: { type: "string", enum: ["image", "video", "document", "audio"] },
-                                            triggerType: { type: "string", enum: ["ALL", "GROUP", "PRIVATE"] }
+                                            triggerType: { type: "string", enum: ["ALL", "GROUP", "PRIVATE"] },
+                                            ignoreAccents: { type: "boolean", default: false, description: "EXACT/CONTAINS only: compare without diacritics (e.g. 'cardapio' matches 'cardápio')" },
+                                            interactive: {
+                                                type: "object",
+                                                nullable: true,
+                                                description: "Send the response as an interactive message with native buttons (not combined with media).",
+                                                properties: {
+                                                    title: { type: "string" },
+                                                    footer: { type: "string" },
+                                                    buttons: {
+                                                        type: "array",
+                                                        items: {
+                                                            type: "object",
+                                                            required: ["type", "displayText"],
+                                                            properties: {
+                                                                type: { type: "string", enum: ["quick_reply", "cta_url", "cta_call", "cta_copy"] },
+                                                                displayText: { type: "string" },
+                                                                value: { type: "string", description: "URL (cta_url), phone number (cta_call) or code (cta_copy); unused for quick_reply" }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     example: {
@@ -2844,11 +2881,34 @@ All endpoints require authentication via:
                                         required: ["keyword"],
                                         properties: {
                                             keyword: { type: "string" },
-                                            response: { type: "string" },
+                                            response: { type: "string", description: "Reply text. Use {{url:https://...}} to insert the text returned by that URL at reply time (cached for 60s). With `interactive`, this text is the message body." },
+                                            matchType: { type: "string", enum: ["EXACT", "CONTAINS", "REGEX"] },
                                             isMedia: { type: "boolean" },
-                                            mediaUrl: { type: "string" },
+                                            mediaUrl: { type: "string", description: "Public URL of the media. The response text is sent as the caption. WebP images are converted to JPEG." },
                                             mediaType: { type: "string", enum: ["image", "video", "document", "audio"] },
-                                            triggerType: { type: "string", enum: ["ALL", "GROUP", "PRIVATE"] }
+                                            triggerType: { type: "string", enum: ["ALL", "GROUP", "PRIVATE"] },
+                                            ignoreAccents: { type: "boolean", default: false, description: "EXACT/CONTAINS only: compare without diacritics (e.g. 'cardapio' matches 'cardápio')" },
+                                            interactive: {
+                                                type: "object",
+                                                nullable: true,
+                                                description: "Send the response as an interactive message with native buttons (not combined with media).",
+                                                properties: {
+                                                    title: { type: "string" },
+                                                    footer: { type: "string" },
+                                                    buttons: {
+                                                        type: "array",
+                                                        items: {
+                                                            type: "object",
+                                                            required: ["type", "displayText"],
+                                                            properties: {
+                                                                type: { type: "string", enum: ["quick_reply", "cta_url", "cta_call", "cta_copy"] },
+                                                                displayText: { type: "string" },
+                                                                value: { type: "string", description: "URL (cta_url), phone number (cta_call) or code (cta_copy); unused for quick_reply" }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     example: {
@@ -2882,6 +2942,67 @@ All endpoints require authentication via:
                             401: { $ref: "#/components/responses/Unauthorized" },
                             403: { $ref: "#/components/responses/Forbidden" },
                             404: { description: "Rule not found" }
+                        }
+                    }
+                },
+
+                // ==================== ERROR LOGS ====================
+                "/error-logs/{sessionId}": {
+                    get: {
+                        tags: ["Error Logs"],
+                        summary: "List auto-reply / broadcast errors",
+                        description: "Failures recorded while sending auto-replies or broadcasts (latest 200, newest first).",
+                        parameters: [
+                            { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
+                            { name: "source", in: "query", required: true, schema: { type: "string", enum: ["AUTOREPLY", "BROADCAST"] } }
+                        ],
+                        responses: {
+                            200: {
+                                description: "Error entries",
+                                content: {
+                                    "application/json": {
+                                        schema: {
+                                            type: "object",
+                                            properties: {
+                                                status: { type: "boolean", example: true },
+                                                data: {
+                                                    type: "array",
+                                                    items: {
+                                                        type: "object",
+                                                        properties: {
+                                                            id: { type: "string" },
+                                                            source: { type: "string", enum: ["AUTOREPLY", "BROADCAST"] },
+                                                            refLabel: { type: "string", nullable: true, description: "Rule keyword (AUTOREPLY) or broadcast id (BROADCAST)" },
+                                                            target: { type: "string", nullable: true, description: "Recipient JID" },
+                                                            message: { type: "string" },
+                                                            createdAt: { type: "string", format: "date-time" }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            400: { description: "Invalid source" },
+                            401: { $ref: "#/components/responses/Unauthorized" },
+                            403: { $ref: "#/components/responses/Forbidden" }
+                        }
+                    },
+                    delete: {
+                        tags: ["Error Logs"],
+                        summary: "Delete errors",
+                        description: "Delete one entry (`id`) or every entry of a source (`source`).",
+                        parameters: [
+                            { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
+                            { name: "id", in: "query", required: false, schema: { type: "string" } },
+                            { name: "source", in: "query", required: false, schema: { type: "string", enum: ["AUTOREPLY", "BROADCAST"] } }
+                        ],
+                        responses: {
+                            200: { description: "Deleted (data.count = removed entries)" },
+                            400: { description: "Provide id or source" },
+                            401: { $ref: "#/components/responses/Unauthorized" },
+                            403: { $ref: "#/components/responses/Forbidden" }
                         }
                     }
                 },
