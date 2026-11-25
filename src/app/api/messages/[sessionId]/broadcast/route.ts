@@ -18,11 +18,28 @@ const BATCH_PAUSE_MAX_MS = 300_000;
 const MAX_PER_HOUR = 100;
 const HOUR_MS = 3_600_000;
 
+const escapeRegex = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Applies removeFromName / firstNameOnly to a contact name used for @Nome. */
+function cleanRecipientName(name: string, removeFromName: string[] = [], firstNameOnly = false): string {
+    let out = name;
+    if (removeFromName.length) {
+        const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:${removeFromName.map(escapeRegex).join("|")})(?![\\p{L}\\p{N}])`, "giu");
+        out = out.replace(re, " ");
+    }
+    out = out.replace(/\s{2,}/g, " ").trim();
+    return firstNameOnly ? out.split(" ")[0] ?? "" : out;
+}
+
 const broadcastBodySchema = z.object({
     recipients: z.array(z.string()),
     // Optional name per recipient (keyed by the same value sent in `recipients`), used for the @Nome placeholder
     recipientNames: z.record(z.string(), z.string()).optional(),
     message: z.string().min(1),
+    // Words removed from every name before @Nome is replaced (case-insensitive, whole words), e.g. ["Comprador"]
+    removeFromName: z.array(z.string().min(1)).max(50).optional(),
+    // @Nome becomes only the first word of the name
+    firstNameOnly: z.boolean().default(false),
     delay: z.number().optional(),
     antiBan: z.boolean().default(true)
 });
@@ -45,11 +62,11 @@ export async function POST(
             return NextResponse.json({ error: parseResult.error.flatten() }, { status: 400 });
         }
 
-        const { recipients, message, delay, antiBan, recipientNames } = parseResult.data;
+        const { recipients, message, delay, antiBan, recipientNames, removeFromName, firstNameOnly } = parseResult.data;
         const nameByJid = new Map<string, string>();
         for (const [raw, name] of Object.entries(recipientNames ?? {})) {
             const jid = normalizeBroadcastJid(raw);
-            if (jid) nameByJid.set(jid, name);
+            if (jid) nameByJid.set(jid, cleanRecipientName(name, removeFromName, firstNameOnly));
         }
 
         // Sanitize & normalize recipients (strip '+', whitespace, non-digits, ensure valid WhatsApp JID format)

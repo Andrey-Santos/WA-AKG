@@ -1239,6 +1239,14 @@ All endpoints require authentication via:
                                                 example: { "628123456789@s.whatsapp.net": "Ana", "628987654321@s.whatsapp.net": "Bruno" }
                                             },
                                             message: { type: "string", example: "Hi @Nome, your appointment is tomorrow at 10:00" },
+                                            removeFromName: {
+                                                type: "array",
+                                                items: { type: "string" },
+                                                maxItems: 50,
+                                                description: "Words removed from every name before @Nome is replaced (case-insensitive, whole words only). Example: [\"Comprador\"] turns \"Ana Comprador Silva\" into \"Ana Silva\".",
+                                                example: ["Comprador", "Cliente"]
+                                            },
+                                            firstNameOnly: { type: "boolean", default: false, description: "@Nome uses only the first word of the name (applied after removeFromName)." },
                                             delay: { type: "number", description: "Optional base delay between sends in milliseconds (a random jitter of up to +50% is added). Default: random 10000-30000.", example: 15000 },
                                             antiBan: { type: "boolean", default: true, description: "Anti-ban protections: 2-5 min pause every 20 sends and a hard cap of 100 sends per rolling hour. Set false to disable them (higher risk of the number being banned)." }
                                         }

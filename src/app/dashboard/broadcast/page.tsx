@@ -65,6 +65,8 @@ export default function BroadcastPage() {
     const [message, setMessage] = useState("");
     const [delay, setDelay] = useState([2000]);
     const [antiBan, setAntiBan] = useState(true);
+    const [removeWords, setRemoveWords] = useState("");
+    const [firstNameOnly, setFirstNameOnly] = useState(false);
     const [loading, setLoading] = useState(false);
     const [broadcastProgress, setBroadcastProgress] = useState<BroadcastProgress | null>(null);
     const [activeTab, setActiveTab] = useState<"new" | "history" | "errors">("new");
@@ -289,7 +291,9 @@ export default function BroadcastPage() {
                     recipientNames: Object.fromEntries(Array.from(parsedContacts).filter(([, name]) => name)),
                     message,
                     delay: delay[0],
-                    antiBan
+                    antiBan,
+                    removeFromName: removeWords.split(",").map(w => w.trim()).filter(Boolean),
+                    firstNameOnly
                 })
             });
 
@@ -417,6 +421,26 @@ export default function BroadcastPage() {
                                             disabled={loading}
                                         />
                                         <p className="text-xs text-muted-foreground">{t("messageNameHint")}</p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="removeWords">{t("removeFromNameLabel")}</Label>
+                                        <Input
+                                            id="removeWords"
+                                            placeholder={t("removeFromNamePlaceholder")}
+                                            value={removeWords}
+                                            onChange={e => setRemoveWords(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                        <p className="text-xs text-muted-foreground">{t("removeFromNameHint")}</p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="space-y-0.5">
+                                            <Label htmlFor="firstNameOnly">{t("firstNameOnlyLabel")}</Label>
+                                            <p className="text-xs text-muted-foreground">{t("firstNameOnlyHint")}</p>
+                                        </div>
+                                        <Switch id="firstNameOnly" checked={firstNameOnly} onCheckedChange={setFirstNameOnly} disabled={loading} />
                                     </div>
 
                                     <div className="space-y-4 pt-4">
