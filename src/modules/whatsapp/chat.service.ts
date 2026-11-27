@@ -209,7 +209,8 @@ export class ChatService {
         };
     }
 
-    static async sendTextMessage(sessionId: string, jid: string, messagePayload: any, mentions?: string[], quotedMessageId?: string) {
+    /** `linkPreview: false` envia o texto sem cartão de prévia do link (omitido = comportamento padrão do socket). */
+    static async sendTextMessage(sessionId: string, jid: string, messagePayload: any, mentions?: string[], quotedMessageId?: string, linkPreview?: boolean) {
         const instance = waManager.getInstance(sessionId);
         if (!instance || !instance.socket) {
             throw new Error("WhatsApp session is disconnected or not found");
@@ -257,6 +258,8 @@ export class ChatService {
 
         const { materializeSafeMediaPayload } = await import("@/lib/security");
         let msgPayload = await materializeSafeMediaPayload(messagePayload);
+
+        if (linkPreview === false && msgPayload.text) msgPayload.linkPreview = null;
 
         if (msgPayload.text && mentions && Array.isArray(mentions)) {
             msgPayload.mentions = mentions;
